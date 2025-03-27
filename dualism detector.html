@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dualism Detector</title>
+  <style>
+    body { font-family: sans-serif; }
+    textarea { width: 80%; height: 150px; margin-bottom: 10px; }
+    button { padding: 8px 15px; }
+    #result { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Dualism Detector</h1>
+  <textarea id="inputText" placeholder="Enter text here..."></textarea><br>
+  <button onclick="detectDualism()">Detect Dualism</button>
+  <div id="result"></div>
+
+  <script>
+    function detectDualism() {
+      const text = document.getElementById("inputText").value.toLowerCase();
+      const words = text.split(/\s+/);
+      const wordCounts = {};
+      const pairsCounts = {};
+      const stopWords = ["the", "a", "an", "is", "are", "of", "and", "in", "to", "for", "with", "on", "such", "as", "resulted", "from","he", "she", "was", "that", "his", "him", "her", "by", "who"];
+      const romanNumerals = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx", "l", "c", "d", "m"];
+
+      function isNumeric(str) {
+        if (typeof str != "string") return false;
+        return !isNaN(str) && !isNaN(parseFloat(str));
+      }
+
+      // Count individual words (excluding stop words, numbers, and roman numerals)
+      words.forEach((word) => {
+        if (word && !stopWords.includes(word) && !isNumeric(word) && !romanNumerals.includes(word)) {
+          wordCounts[word] = (wordCounts[word] || 0) + 1;
+        }
+      });
+
+      // Count word pairs (excluding stop words, numbers, and roman numerals)
+      for (let i = 0; i < words.length - 1; i++) {
+        const word1 = words[i];
+        const word2 = words[i + 1];
+        if (word1 && word2 && !stopWords.includes(word1) && !stopWords.includes(word2) && !isNumeric(word1) && !isNumeric(word2) && !romanNumerals.includes(word1) && !romanNumerals.includes(word2)) {
+          const pair = word1 + " " + word2;
+          pairsCounts[pair] = (pairsCounts[pair] || 0) + 1;
+        }
+      }
+
+      // Find the most frequent words
+      let mostFrequentWord1 = "";
+      let mostFrequentWord2 = "";
+      let maxCount1 = 0;
+      let maxCount2 = 0;
+
+      for (const word in wordCounts) {
+        if (wordCounts[word] > maxCount1) {
+          maxCount2 = maxCount1;
+          mostFrequentWord2 = mostFrequentWord1;
+          maxCount1 = wordCounts[word];
+          mostFrequentWord1 = word;
+        } else if (wordCounts[word] > maxCount2) {
+          maxCount2 = wordCounts[word];
+          mostFrequentWord2 = word;
+        }
+      }
+
+      //Find most frequent pair
+      let mostFrequentPair = "";
+      let maxPairCount = 0;
+
+      for(const pair in pairsCounts){
+          if(pairsCounts[pair] > maxPairCount){
+              maxPairCount = pairsCounts[pair];
+              mostFrequentPair = pair;
+          }
+      }
+
+      //Extract the words of the most frequent pair.
+      let pairWords = mostFrequentPair.split(" ");
+      let pairWord1 = pairWords[0];
+      let pairWord2 = pairWords[1];
+
+      //If a pair is found, use those words. Otherwise, use the most frequent individual words.
+      let resultString = "";
+      if(pairWord1 && pairWord2 && (pairWords.join(" ") !== mostFrequentPair)){
+          resultString = pairWord1 + " and " + pairWord2;
+      }
+      else if(mostFrequentWord1 && mostFrequentWord2){
+          resultString = mostFrequentWord1 + " and " + mostFrequentWord2;
+      }
+
+      if(!mostFrequentWord1 && !mostFrequentWord2){
+          resultString = "No repeated terms found.";
+      }
+      document.getElementById("result").textContent = resultString;
+    }
+  </script>
+</body>
+</html>
